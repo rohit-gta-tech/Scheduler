@@ -23,7 +23,7 @@ export default function useApplicationData() {
         const [ id, interview ] = action.value;
         const appointment = {
           ...state.appointments[id],
-          interview: { ...interview }
+          interview: interview ? { ...interview } : null
         };
         const appointments = {
           ...state.appointments,
@@ -31,12 +31,18 @@ export default function useApplicationData() {
         };
         const days = [...state.days].map(eachDay => {
           if(eachDay.appointments.includes(id)) {
-              return {...eachDay, spots: (!interview) ? ({...eachDay}.spots + 1) : ({...eachDay}.spots - 1)}
+            let spots = {...eachDay}.spots;
+            if ({...state}.appointments[id].interview && !interview) {
+              spots++;
+            } else if ({...state}.appointments[id].interview === null && interview){
+              spots--;
+            }
+              return {...eachDay, spots: spots}
           } else {
               return {...eachDay}
           }
        })
-        return { ...state, appointments, days}
+        return { ...state, appointments, days }
       }
       default:
         throw new Error(
@@ -53,7 +59,7 @@ export default function useApplicationData() {
       };
       webSocket.onmessage = function(event) {
         const { id, interview } = JSON.parse(event.data);
-        //dispatch({type: SET_INTERVIEW, value: [id, interview]})
+        dispatch({type: SET_INTERVIEW, value: [id, interview]})
       };
 
         Promise.all([axios.get('/api/days'), axios.get('/api/appointments'), axios.get('/api/interviewers')])
@@ -65,13 +71,13 @@ export default function useApplicationData() {
 
   function bookInterview(id, interview) {
     return axios.put(`/api/appointments/${id}`, { interview }).then(() =>  {
-      dispatch({type: SET_INTERVIEW, value: [id, interview]});
+      return
     })
   }
 
   function removeInterview(id) {
     return axios.delete(`/api/appointments/${id}`).then(() => {
-      dispatch({type: SET_INTERVIEW, value: [id, null]});
+      return
     })
   }
 
