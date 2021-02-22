@@ -1,72 +1,77 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useReducer } from 'react';
 import axios from "axios";
 
 export default function useApplicationData() {
-    const [state, setState] = useState({
-        day: "Monday",
-        days: [],
-        appointments: {},
-        interviewers: {}
-      })
-    
-    const setDay = day => setState({ ...state, day });
+  const SET_DAY = "SET_DAY";
+  const SET_APPLICATION_DATA = "SET_APPLICATION_DATA";
+  const SET_INTERVIEW = "SET_INTERVIEW";
+
+  const [state, dispatch] = useReducer(reducer, {
+    day: "Monday",
+    days: [],
+    appointments: {},
+    interviewers: {}
+  }) 
+
+  function reducer(state, action) {
+    switch (action.type) {
+      case SET_DAY:
+        return { ...state, day: action.value }
+      case SET_APPLICATION_DATA:
+        return { ...state, days: action.value[0].data, appointments: action.value[1].data, interviewers: action.value[2].data }
+      case SET_INTERVIEW: {
+        const [ id, interview ] = action.value;
+        const appointment = {
+          ...state.appointments[id],
+          interview: { ...interview }
+        };
+        const appointments = {
+          ...state.appointments,
+          [id]: appointment
+        };
+        const days = [...state.days].map(eachDay => {
+          if(eachDay.appointments.includes(id)) {
+              return {...eachDay, spots: (!interview) ? ({...eachDay}.spots + 1) : ({...eachDay}.spots - 1)}
+          } else {
+              return {...eachDay}
+          }
+       })
+        return { ...state, appointments, days}
+      }
+      default:
+        throw new Error(
+          `Tried to reduce with unsupported action type: ${action.type}`
+        );
+    }
+  }
+  
+    const setDay = day => dispatch({type: SET_DAY, value:day});
     
     useEffect(() => {
+      const webSocket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
+      webSocket.onopen = function() {
+      };
+      webSocket.onmessage = function(event) {
+        const { id, interview } = JSON.parse(event.data);
+        //dispatch({type: SET_INTERVIEW, value: [id, interview]})
+      };
+
         Promise.all([axios.get('/api/days'), axios.get('/api/appointments'), axios.get('/api/interviewers')])
-        .then(responses => {
-          setState(prev => ({...prev, days: responses[0].data, appointments: responses[1].data, interviewers: responses[2].data}));
+        .then(response => {
+          dispatch({type: SET_APPLICATION_DATA, value: response});
         })
     }, [])
 
 
   function bookInterview(id, interview) {
-    const appointment = {
-      ...state.appointments[id],
-      interview: { ...interview }
-    };
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment
-    };
-
-    const days = [...state.days].map(eachDay => {
-        if(eachDay.appointments.includes(id)) {
-            return {...eachDay, spots: {...eachDay}.spots - 1}
-        } else {
-            return {...eachDay}
-        }
-    })
-    
     return axios.put(`/api/appointments/${id}`, { interview }).then(() =>  {
-      setState((prev) => {
-        return { ...prev, appointments, days}
-      })
+      dispatch({type: SET_INTERVIEW, value: [id, interview]});
     })
   }
 
   function removeInterview(id) {
-    const appointment = {
-      ...state.appointments[id],
-      interview: null
-    };
-
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment
-    };
-
-    const days = [...state.days].map(eachDay => {
-        if(eachDay.appointments.includes(id)) {
-            return {...eachDay, spots: {...eachDay}.spots + 1}
-        } else {
-            return {...eachDay}
-        }
-    })
-
     return axios.delete(`/api/appointments/${id}`).then(() => {
-      setState((prev) => {
-        return { ...prev, appointments, days}
-      })
+      dispatch({type: SET_INTERVIEW, value: [id, null]});
     })
   }
 
