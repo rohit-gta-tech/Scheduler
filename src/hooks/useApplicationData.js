@@ -12,7 +12,7 @@ export default function useApplicationData() {
     const setDay = day => dispatch({type: SET_DAY, value:day});
     
     useEffect(() => {
-      //WebSocket disabled for testing purposes
+      //WebSocket disabled for testing
       /*const webSocket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
       webSocket.onopen = function() {
       };
@@ -30,16 +30,16 @@ export default function useApplicationData() {
 
   function bookInterview(id, interview) {
     return axios.put(`/api/appointments/${id}`, { interview }).then(() =>  {
-      dispatch({type: SET_INTERVIEW, value: [id, interview]})
+      dispatch({type: SET_INTERVIEW, value: [id, interview]});
     })
   }
 
   function removeInterview(id) {
     return axios.delete(`/api/appointments/${id}`).then(() => {
-      dispatch({type: SET_INTERVIEW, value: [id, null]})
+      dispatch({type: SET_INTERVIEW, value: [id, null]});
     })
   }
 
-  return { state, setDay, bookInterview, removeInterview }
+  return { state, setDay, bookInterview, removeInterview };
     
 }

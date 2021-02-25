@@ -1,14 +1,7 @@
-import React from "react";
-import { render, cleanup } from "@testing-library/react";
-import reducer from "reducers/application"
+import reducer from "reducers/application";
 
-afterEach(cleanup);
-
-describe("Reducer Application", () => {
-  it(" ", () => {
-    
+describe("Application Reducer", () => {
+  it("thows an error with an unsupported type", () => {
+    expect(() => reducer({}, { type: null })).toThrowError();
   });
-  
-  
-
-})
+});
