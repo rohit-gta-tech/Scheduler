@@ -39,10 +39,10 @@ npm run cypress
 - @testing-library/react-hooks
 - react-test-renderer
 
-![]
-![]
-![]
-![]
+![](https://github.com/rohit-gta-tech/Scheduler/blob/master/docs/IS1.png?raw=true)
+![](https://github.com/rohit-gta-tech/Scheduler/blob/master/docs/IS2.png?raw=true)
+![](https://github.com/rohit-gta-tech/Scheduler/blob/master/docs/IS3.png?raw=true)
+![](https://github.com/rohit-gta-tech/Scheduler/blob/master/docs/IS4.png?raw=true)
 
 
 
